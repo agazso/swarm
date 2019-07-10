@@ -573,7 +573,8 @@ func (p *Pss) SendRaw(address PssAddress, topic Topic, msg []byte) error {
 	// also deliver message to ourselves
 	if capabilities, ok := p.getTopicHandlerCaps(topic); ok {
 		if p.isSelfPossibleRecipient(pssMsg, true) && capabilities.prox {
-			return p.process(pssMsg, true, true)
+			go p.process(pssMsg, true, true)
+			return nil
 		}
 	}
 	return nil
