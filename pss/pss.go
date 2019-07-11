@@ -433,7 +433,7 @@ func (p *Pss) handlePssMsg(ctx context.Context, msg interface{}) error {
 // Attempts symmetric and asymmetric decryption with stored keys.
 // Dispatches message to all handlers matching the message topic
 func (p *Pss) process(pssmsg *PssMsg, raw bool, prox bool) error {
-	metrics.GetOrRegisterCounter("pss.process", nil).Inc(1)
+	defer metrics.GetOrRegisterResettingTimer("pss.process", nil).UpdateSince(time.Now())
 
 	var err error
 	var recvmsg *whisper.ReceivedMessage
@@ -481,6 +481,8 @@ func (p *Pss) getHandlers(topic Topic) (ret []*handler) {
 }
 
 func (p *Pss) executeHandlers(topic Topic, payload []byte, from PssAddress, raw bool, prox bool, asymmetric bool, keyid string) {
+	defer metrics.GetOrRegisterResettingTimer("pss.execute-handlers", nil).UpdateSince(time.Now())
+
 	handlers := p.getHandlers(topic)
 	peer := p2p.NewPeer(enode.ID{}, fmt.Sprintf("%x", from), []p2p.Cap{})
 	for _, h := range handlers {
